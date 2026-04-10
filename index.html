@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#5DCAA5;--purple:#7F77DD;--amber:#EF9F27;--coral:#F0997B;--bg:#04090f;--text:rgba(255,255,255,0.85);--muted:rgba(255,255,255,0.35)}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;overflow-x:hidden}
+
+/* ── STARS ── */
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) infinite var(--delay,0s)}
+@keyframes twinkle{0%,100%{opacity:var(--lo,.1)}50%{opacity:var(--hi,.6)}}
+
+/* ── BIOLUMINESCENT PARTICLES ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0}
+.particle{position:absolute;border-radius:50%;animation:drift var(--pd,8s) ease-in-out infinite var(--pdelay,0s)}
+@keyframes drift{0%{transform:translateY(0) translateX(0);opacity:0}20%{opacity:1}80%{opacity:0.6}100%{transform:translateY(-120px) translateX(var(--px,20px));opacity:0}}
+
+/* ── LAYOUT ── */
+.page{position:relative;z-index:1}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative}
+.hero-eyebrow{font-size:11px;letter-spacing:.18em;color:var(--teal);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s .3s forwards}
+.hero h1{font-size:clamp(2.4rem,6vw,5rem);font-weight:300;letter-spacing:-.02em;line-height:1.1;margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s .5s forwards}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:clamp(1rem,2vw,1.2rem);color:var(--muted);max-width:540px;line-height:1.7;margin-bottom:2.5rem;opacity:0;animation:fadeUp .8s .7s forwards}
+.cta-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .8s .9s forwards}
+.btn-primary{padding:.85rem 2.2rem;border-radius:99px;background:var(--teal);color:#04090f;font-size:14px;font-weight:500;border:none;cursor:pointer;letter-spacing:.02em;transition:opacity .2s}
+.btn-primary:hover{opacity:.85}
+.btn-ghost{padding:.85rem 2.2rem;border-radius:99px;background:transparent;color:var(--text);font-size:14px;border:.5px solid rgba(255,255,255,0.2);cursor:pointer;letter-spacing:.02em;transition:border-color .2s}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.5)}
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:fadeUp .8s 1.4s forwards}
+.scroll-hint span{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.scroll-arrow{width:1px;height:40px;background:linear-gradient(to bottom,var(--teal),transparent)}
+
+/* ── SONAR GAME ── */
+.section{padding:5rem 2rem;max-width:900px;margin:0 auto;text-align:center}
+.section-label{font-size:10px;letter-spacing:.18em;color:var(--purple);text-transform:uppercase;margin-bottom:1rem}
+.section h2{font-size:clamp(1.6rem,4vw,2.8rem);font-weight:300;letter-spacing:-.02em;margin-bottom:1rem}
+.section p{color:var(--muted);font-size:15px;line-height:1.7;max-width:560px;margin:0 auto 2rem}
+
+#sonar-wrap{position:relative;width:340px;height:340px;margin:0 auto 2rem;cursor:crosshair}
+#sonar-canvas{border-radius:50%;border:.5px solid rgba(93,202,165,0.2)}
+.sonar-ui{margin-top:1rem;display:flex;justify-content:center;gap:2rem}
+.sonar-stat{text-align:center}
+.sonar-stat-val{font-size:22px;font-weight:300;color:var(--teal)}
+.sonar-stat-label{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+#sonar-msg{font-size:13px;color:var(--teal);height:20px;margin-top:.75rem;letter-spacing:.04em}
+
+/* ── SIGNAL DECODE ── */
+.decode-area{background:rgba(255,255,255,0.03);border:.5px solid rgba(255,255,255,0.08);border-radius:20px;padding:2rem;max-width:640px;margin:0 auto}
+.signal-bars{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:80px;margin-bottom:1.5rem}
+.sig-bar{width:8px;border-radius:4px 4px 0 0;background:var(--purple);transition:height .15s}
+.morse-display{font-family:monospace;font-size:18px;letter-spacing:.2em;color:var(--teal);min-height:28px;margin-bottom:1.5rem;text-align:center}
+.decode-input-row{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+.decode-opt{padding:.6rem 1.4rem;border-radius:99px;border:.5px solid rgba(255,255,255,0.15);background:transparent;color:var(--text);font-size:13px;cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.decode-opt:hover{border-color:var(--purple);color:var(--purple)}
+.decode-opt.correct{border-color:var(--teal);background:rgba(93,202,165,.1);color:var(--teal)}
+.decode-opt.wrong{border-color:#F0997B;background:rgba(240,153,123,.1);color:#F0997B}
+#decode-score{font-size:13px;color:var(--muted);margin-top:1rem}
+
+/* ── ROLE REVEAL ── */
+.role-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;max-width:640px;margin:0 auto 2rem}
+@media(min-width:600px){.role-cards{grid-template-columns:repeat(4,1fr)}}
+.role-card{padding:1.2rem .75rem;border-radius:14px;border:.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.role-card:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px)}
+.role-card.selected{border-color:var(--rc);background:rgba(255,255,255,0.06)}
+.role-card.selected::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,var(--rc-glow),transparent 70%);opacity:.3}
+.role-icon{font-size:28px;margin-bottom:.5rem}
+.role-name{font-size:13px;font-weight:500;color:var(--text)}
+.role-sub{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
+#role-detail{padding:1.25rem;background:rgba(255,255,255,0.04);border-radius:14px;border:.5px solid rgba(255,255,255,0.08);font-size:14px;color:var(--muted);line-height:1.7;max-width:640px;margin:0 auto;min-height:80px;transition:all .3s}
+
+/* ── APPLY ── */
+.apply-box{max-width:560px;margin:0 auto;background:rgba(255,255,255,0.03);border:.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:2.5rem 2rem;text-align:center}
+.apply-box h3{font-size:1.6rem;font-weight:300;margin-bottom:.5rem}
+.apply-box p{color:var(--muted);font-size:14px;margin-bottom:1.5rem;line-height:1.7}
+.drift-id{font-family:monospace;font-size:13px;color:var(--teal);background:rgba(93,202,165,.08);border:.5px solid rgba(93,202,165,.2);border-radius:8px;padding:.5rem 1rem;display:inline-block;margin-bottom:1.5rem;letter-spacing:.12em}
+.apply-fields{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem}
+.apply-fields input,.apply-fields select{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.05);border:.5px solid rgba(255,255,255,0.12);border-radius:10px;color:white;font-size:14px;outline:none;transition:border-color .2s}
+.apply-fields input::placeholder{color:rgba(255,255,255,.3)}
+.apply-fields input:focus,.apply-fields select:focus{border-color:var(--teal)}
+.apply-fields select option{background:#0a1520;color:white}
+#apply-btn{width:100%;padding:.85rem;border-radius:99px;background:var(--teal);color:#04090f;font-size:14px;font-weight:500;border:none;cursor:pointer;letter-spacing:.04em;transition:opacity .2s}
+#apply-btn:hover{opacity:.85}
+#apply-confirm{display:none;text-align:center;padding:1rem}
+#apply-confirm .big{font-size:2rem;margin-bottom:.5rem}
+#apply-confirm p{color:var(--muted);font-size:14px;line-height:1.7}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:3rem 1rem;border-top:.5px solid rgba(255,255,255,0.06)}
+footer p{font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:.08em}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── DEPTH METER ── */
+.depth-bar{width:3px;height:80px;background:rgba(255,255,255,0.06);border-radius:99px;position:absolute;right:2rem;top:50%;transform:translateY(-50%)}
+.depth-fill{width:100%;border-radius:99px;background:var(--teal);position:absolute;bottom:0;transition:height .4s}
+.depth-label{position:absolute;right:12px;font-size:9px;color:var(--muted);letter-spacing:.06em;white-space:nowrap;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center}
+</style>
+</head>
+<body>
+<canvas id="stars" style="position:fixed;inset:0;z-index:0;pointer-events:none"></canvas>
+<div id="particles"></div>
+
+<div class="page">
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-eyebrow">The Luminary Initiative · Open recruitment</div>
+  <h1>The ocean sent<br>a <em>signal</em>.</h1>
+  <p class="hero-sub">Station Nereid went silent in 1973. Three days ago, something answered. We need a team. Are you the one?</p>
+  <div class="cta-row">
+    <button class="btn-primary" onclick="document.getElementById('game1').scrollIntoView({behavior:'smooth'})">Begin assessment</button>
+    <button class="btn-ghost" onclick="document.getElementById('apply').scrollIntoView({behavior:'smooth'})">Apply directly</button>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll to descend</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ═══ SONAR GAME ═══ -->
+<section id="game1" class="section">
+  <div class="section-label">Assessment · 01</div>
+  <h2>Locate the signal</h2>
+  <p>The frequency is somewhere in the grid. Use your sonar to find it before the sweep completes. Specialists identify the source in under three pings.</p>
+  <div id="sonar-wrap">
+    <canvas id="sonar-canvas" width="340" height="340"></canvas>
+  </div>
+  <div id="sonar-msg">Click anywhere on the sonar to ping</div>
+  <div class="sonar-ui">
+    <div class="sonar-stat"><div class="sonar-stat-val" id="ping-count">0</div><div class="sonar-stat-label">Pings</div></div>
+    <div class="sonar-stat"><div class="sonar-stat-val" id="dist-val">—</div><div class="sonar-stat-label">Distance</div></div>
+    <div class="sonar-stat"><div class="sonar-stat-val" id="sonar-score">—</div><div class="sonar-stat-label">Rating</div></div>
+  </div>
+</section>
+
+<!-- ═══ DECODE GAME ═══ -->
+<section id="game2" class="section">
+  <div class="section-label">Assessment · 02</div>
+  <h2>Decode the transmission</h2>
+  <p>NEREID-7 intercepted a pattern in the frequency band. Identify the message. The station is listening.</p>
+  <div class="decode-area">
+    <div class="signal-bars" id="signal-bars"></div>
+    <div class="morse-display" id="morse-display"></div>
+    <div class="decode-input-row" id="decode-opts"></div>
+    <div id="decode-score">Round 1 of 3</div>
+  </div>
+</section>
+
+<!-- ═══ ROLE REVEAL ═══ -->
+<section id="game3" class="section">
+  <div class="section-label">Assessment · 03</div>
+  <h2>What is your role?</h2>
+  <p>Every specialist brings something different. The ocean reads you before you read it. Choose the approach that feels true.</p>
+  <div class="role-cards" id="role-cards">
+    <div class="role-card" style="--rc:#5DCAA5;--rc-glow:#5DCAA5" data-role="navigator" onclick="selectRole(this)">
+      <div class="role-icon">◎</div>
+      <div class="role-name">Navigator</div>
+      <div class="role-sub">I chart the path before taking it</div>
+    </div>
+    <div class="role-card" style="--rc:#7F77DD;--rc-glow:#7F77DD" data-role="scientist" onclick="selectRole(this)">
+      <div class="role-icon">◈</div>
+      <div class="role-name">Scientist</div>
+      <div class="role-sub">I name what others don't notice</div>
+    </div>
+    <div class="role-card" style="--rc:#EF9F27;--rc-glow:#EF9F27" data-role="decoder" onclick="selectRole(this)">
+      <div class="role-icon">⌘</div>
+      <div class="role-name">Decoder</div>
+      <div class="role-sub">I find the pattern in the noise</div>
+    </div>
+    <div class="role-card" style="--rc:#F0997B;--rc-glow:#F0997B" data-role="keeper" onclick="selectRole(this)">
+      <div class="role-icon">❋</div>
+      <div class="role-name">Keeper</div>
+      <div class="role-sub">I protect what matters most</div>
+    </div>
+  </div>
+  <div id="role-detail">Select a role above to learn more about your mission.</div>
+</section>
+
+<!-- ═══ APPLY ═══ -->
+<section id="apply" class="section">
+  <div class="section-label">Recruitment · Final step</div>
+  <h2>Submit your application</h2>
+  <p>Your assessment is complete. NEREID-7 has generated your Drift ID. Submit your details to confirm your place in the first specialist cohort.</p>
+  <div class="apply-box">
+    <div id="apply-form-wrap">
+      <div class="drift-id" id="drift-id-display">DRIFT-——</div>
+      <div class="apply-fields">
+        <input type="text" placeholder="Full name" id="f-name"/>
+        <input type="email" placeholder="Email address" id="f-email"/>
+        <select id="f-role">
+          <option value="" disabled selected>Your assessed role</option>
+          <option>Navigator</option><option>Scientist</option><option>Decoder</option><option>Keeper</option>
+        </select>
+        <input type="text" placeholder="Why does the ocean call you?" id="f-why"/>
+      </div>
+      <button id="apply-btn" onclick="submitApp()">Transmit application →</button>
+    </div>
+    <div id="apply-confirm">
+      <div class="big">◎</div>
+      <p style="color:var(--teal);font-size:16px;margin-bottom:.5rem">Application received.</p>
+      <p>NEREID-7 has logged your Drift ID. <br>The signal is stronger now. We'll be in touch.<br><br><em style="font-size:12px;color:rgba(255,255,255,0.2)">"The ocean isn't finished with you yet."</em></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>THE LUMINARY INSTITUTE · FOUNDED 1974 · STILL LISTENING</p>
+</footer>
+</div>
+
+<script>
+/* ── STARS ── */
+(function(){
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  for(let i=0;i<180;i++){
+    const x=Math.random()*c.width,y=Math.random()*c.height,r=Math.random()*1.2;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${0.05+Math.random()*0.3})`;ctx.fill();
+  }
+})();
+
+/* ── BIOLUMINESCENT PARTICLES ── */
+(function(){
+  const wrap=document.getElementById('particles');
+  for(let i=0;i<30;i++){
+    const d=document.createElement('div');d.className='particle';
+    const colors=['#5DCAA5','#7F77DD','#85B7EB'];
+    const c=colors[Math.floor(Math.random()*colors.length)];
+    const size=2+Math.random()*3;
+    d.style.cssText=`width:${size}px;height:${size}px;background:${c};left:${Math.random()*100}%;top:${40+Math.random()*60}%;--pd:${6+Math.random()*8}s;--pdelay:${Math.random()*8}s;--px:${(Math.random()-.5)*60}px;opacity:0`;
+    wrap.appendChild(d);
+  }
+})();
+
+/* ── SONAR GAME ── */
+(function(){
+  const canvas=document.getElementById('sonar-canvas'),ctx=canvas.getContext('2d');
+  const W=340,cx=170,cy=170,R=165;
+  let angle=0,pings=[],found=false,pingCount=0;
+  const target={x:cx+(Math.random()-.5)*240,y:cy+(Math.random()-.5)*240};
+
+  function draw(){
+    ctx.clearRect(0,0,W,W);
+    // bg
+    ctx.fillStyle='#04090f';ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+    // grid rings
+    for(let r=40;r<=R;r+=40){ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(93,202,165,0.08)';ctx.lineWidth=.5;ctx.stroke();}
+    // grid lines
+    for(let a=0;a<Math.PI*2;a+=Math.PI/6){ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);ctx.strokeStyle='rgba(93,202,165,0.06)';ctx.lineWidth=.5;ctx.stroke();}
+    // sweep
+    const grad=ctx.createConicalGradient?null:null;
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,angle-0.7,angle);
+    ctx.lineTo(cx,cy);ctx.closePath();
+    ctx.fillStyle='rgba(93,202,165,0.12)';ctx.fill();ctx.restore();
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*R,cy+Math.sin(angle)*R);
+    ctx.strokeStyle='rgba(93,202,165,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+    // pings
+    pings.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(93,202,165,${p.alpha})`;ctx.lineWidth=.8;ctx.stroke();
+      p.r+=0.8;p.alpha-=0.012;
+    });
+    pings=pings.filter(p=>p.alpha>0);
+    // target glow if found
+    if(found){ctx.beginPath();ctx.arc(target.x,target.y,8,0,Math.PI*2);ctx.fillStyle='rgba(93,202,165,0.9)';ctx.fill();
+      ctx.beginPath();ctx.arc(target.x,target.y,14,0,Math.PI*2);ctx.strokeStyle='rgba(93,202,165,0.4)';ctx.lineWidth=1;ctx.stroke();}
+    // center dot
+    ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='#5DCAA5';ctx.fill();
+    // clip
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.clip();ctx.clearRect(0,0,0,0);ctx.restore();
+    angle+=0.025;
+    requestAnimationFrame(draw);
+  }
+  // clip to circle
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.clip();
+  draw();
+
+  canvas.addEventListener('click',function(e){
+    if(found)return;
+    const rect=canvas.getBoundingClientRect();
+    const px=e.clientX-rect.left,py=e.clientY-rect.top;
+    const dist=Math.hypot(px-target.x,py-target.y);
+    pingCount++;
+    document.getElementById('ping-count').textContent=pingCount;
+    pings.push({x:px,y:py,r:4,alpha:.8});
+    const km=Math.round(dist/165*50);
+    document.getElementById('dist-val').textContent=km+'km';
+    if(dist<20){
+      found=true;
+      const rating=pingCount<=2?'Exceptional':pingCount<=4?'Strong':pingCount<=6?'Capable':'Developing';
+      document.getElementById('sonar-score').textContent=rating;
+      document.getElementById('sonar-msg').textContent='Signal located. Coordinates locked.';
+      setTimeout(()=>document.getElementById('game2').scrollIntoView({behavior:'smooth'}),1400);
+    } else {
+      document.getElementById('sonar-msg').textContent=dist<60?'Very close — refine your bearing':dist<120?'Signal detected — adjust heading':'Weak return — search further';
+    }
+  });
+})();
+
+/* ── DECODE GAME ── */
+(function(){
+  const rounds=[
+    {morse:'— · · ·',answer:'B',opts:['B','D','F','N']},
+    {morse:'· — · ·',answer:'L',opts:['L','R','S','K']},
+    {morse:'— · —',answer:'K',opts:['K','C','X','Y']},
+  ];
+  let round=0,score=0;
+  function renderBars(morse){
+    const bars=document.getElementById('signal-bars');
+    bars.innerHTML='';
+    const chars=morse.replace(/ /g,'').split('');
+    chars.forEach(ch=>{
+      const h=ch==='—'?60:28;
+      const b=document.createElement('div');b.className='sig-bar';b.style.height=h+'px';
+      bars.appendChild(b);
+    });
+  }
+  function renderRound(){
+    const r=rounds[round];
+    renderBars(r.morse);
+    document.getElementById('morse-display').textContent=r.morse;
+    const opts=document.getElementById('decode-opts');opts.innerHTML='';
+    r.opts.sort(()=>Math.random()-.5).forEach(o=>{
+      const btn=document.createElement('button');btn.className='decode-opt';btn.textContent=o;
+      btn.onclick=function(){choose(this,o,r.answer);};
+      opts.appendChild(btn);
+    });
+    document.getElementById('decode-score').textContent=`Round ${round+1} of ${rounds.length}`;
+  }
+  function choose(el,opt,ans){
+    document.querySelectorAll('.decode-opt').forEach(b=>b.onclick=null);
+    if(opt===ans){el.classList.add('correct');score++;}
+    else{el.classList.add('wrong');document.querySelectorAll('.decode-opt').forEach(b=>{if(b.textContent===ans)b.classList.add('correct');});}
+    setTimeout(()=>{
+      round++;
+      if(round<rounds.length){renderRound();}
+      else{
+        const pct=Math.round(score/rounds.length*100);
+        document.getElementById('decode-score').textContent=`Complete — ${score}/${rounds.length} decoded (${pct}%)`;
+        setTimeout(()=>document.getElementById('game3').scrollIntoView({behavior:'smooth'}),1200);
+      }
+    },900);
+  }
+  renderRound();
+})();
+
+/* ── ROLE SELECT ── */
+const ROLE_INFO={
+  navigator:"You map the unseen. On Station Nereid you'll pilot the submersible, set bearing and depth, and navigate the group through wreck coordinates no one has visited in fifty years. The ocean trusts those who respect its scale.",
+  scientist:"You name what others walk past. Your scanner logs bioluminescent signatures, identifies unknown species, and builds the biological layer of the creature. Every data point you collect is a word in a language the deep has been speaking for millennia.",
+  decoder:"You find signal in static. The 1973 cipher is yours to crack — Dr Yara Solís designed it so that only someone patient and precise enough to deserve the answer could find it. You deserve the answer.",
+  keeper:"You protect what matters. The coral, the specimen, the biological sample from the exterior of the wreck. Without the Keeper, the creature assembly is incomplete. You are the reason the mission succeeds."
+};
+function selectRole(el){
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('role-detail').textContent=ROLE_INFO[el.dataset.role];
+  document.getElementById('f-role').value=el.querySelector('.role-name').textContent;
+  // generate drift id
+  const id='DRIFT-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  document.getElementById('drift-id-display').textContent=id;
+}
+
+/* ── APPLY ── */
+function submitApp(){
+  const name=document.getElementById('f-name').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  if(!name||!email){alert('Please enter your name and email.');return;}
+  document.getElementById('apply-form-wrap').style.display='none';
+  document.getElementById('apply-confirm').style.display='block';
+}
+</script>
+</body>
+</html>
